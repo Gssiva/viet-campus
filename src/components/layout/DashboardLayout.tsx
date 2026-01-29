@@ -255,16 +255,18 @@ export const teachingNavItems: NavItem[] = [
   { label: "Evaluations", icon: Award, path: "/faculty/evaluations" },
   { label: "Study Materials", icon: Upload, path: "/faculty/materials" },
   { label: "My Students", icon: Users, path: "/faculty/students" },
+  { label: "Notifications", icon: Bell, path: "/faculty/notifications" },
 ];
 
 export const hodNavItems: NavItem[] = [
   { label: "Dashboard", icon: Home, path: "/faculty/dashboard" },
   { label: "Department", icon: Building2, path: "/faculty/department" },
   { label: "Faculty", icon: Users, path: "/faculty/manage-faculty" },
-  { label: "Courses", icon: BookOpen, path: "/faculty/courses" },
-  { label: "Subjects", icon: GraduationCap, path: "/faculty/subjects" },
+  { label: "Students", icon: GraduationCap, path: "/faculty/manage-students" },
+  { label: "Timetable", icon: Calendar, path: "/faculty/timetable" },
   { label: "Analytics", icon: BarChart3, path: "/faculty/analytics" },
   { label: "Announcements", icon: Megaphone, path: "/faculty/announcements" },
+  { label: "Notifications", icon: Bell, path: "/faculty/notifications" },
 ];
 
 export const adminNavItems: NavItem[] = [
@@ -273,8 +275,10 @@ export const adminNavItems: NavItem[] = [
   { label: "Courses", icon: BookOpen, path: "/faculty/courses" },
   { label: "Faculty", icon: Users, path: "/faculty/manage-faculty" },
   { label: "Students", icon: GraduationCap, path: "/faculty/manage-students" },
+  { label: "Timetable", icon: Calendar, path: "/faculty/timetable" },
   { label: "Analytics", icon: BarChart3, path: "/faculty/analytics" },
   { label: "Announcements", icon: Megaphone, path: "/faculty/announcements" },
+  { label: "Notifications", icon: Bell, path: "/faculty/notifications" },
 ];
 
 export const accountsNavItems: NavItem[] = [
@@ -283,6 +287,7 @@ export const accountsNavItems: NavItem[] = [
   { label: "Payments", icon: CreditCard, path: "/faculty/payments" },
   { label: "Transport", icon: Bus, path: "/faculty/transport" },
   { label: "Reports", icon: BarChart3, path: "/faculty/fee-reports" },
+  { label: "Notifications", icon: Bell, path: "/faculty/notifications" },
 ];
 
 export const parentNavItems: NavItem[] = [
