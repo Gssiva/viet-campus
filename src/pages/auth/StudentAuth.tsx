@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -10,16 +10,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StudentAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     rollNumber: "",
     password: "",
   });
+
+  // Redirect if already logged in as student
+  useEffect(() => {
+    if (!authLoading && user && profile?.user_type === "student") {
+      navigate("/student/dashboard", { replace: true });
+    }
+  }, [user, profile, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +65,9 @@ const StudentAuth = () => {
           title: "Welcome!",
           description: "Login successful. Redirecting to dashboard...",
         });
-        navigate("/student/dashboard");
+        setTimeout(() => {
+          navigate("/student/dashboard", { replace: true });
+        }, 500);
       }
     } catch (error) {
       toast({

@@ -189,6 +189,48 @@ export type Database = {
           },
         ]
       }
+      attendance_notification_logs: {
+        Row: {
+          attendance_date: string
+          id: string
+          notification_sent_at: string
+          parent_id: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          attendance_date: string
+          id?: string
+          notification_sent_at?: string
+          parent_id?: string | null
+          status: string
+          student_id: string
+        }
+        Update: {
+          attendance_date?: string
+          id?: string
+          notification_sent_at?: string
+          parent_id?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_notification_logs_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_notification_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -591,6 +633,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          is_sent: boolean
+          message: string
+          notification_type: string
+          reference_id: string | null
+          sent_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          is_sent?: boolean
+          message: string
+          notification_type: string
+          reference_id?: string | null
+          sent_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          is_sent?: boolean
+          message?: string
+          notification_type?: string
+          reference_id?: string | null
+          sent_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -816,6 +897,118 @@ export type Database = {
           {
             foreignKeyName: "submissions_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_slots: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          faculty_id: string | null
+          id: string
+          room_number: string | null
+          slot_type: string
+          start_time: string
+          subject_id: string | null
+          timetable_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          faculty_id?: string | null
+          id?: string
+          room_number?: string | null
+          slot_type?: string
+          start_time: string
+          subject_id?: string | null
+          timetable_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          faculty_id?: string | null
+          id?: string
+          room_number?: string | null
+          slot_type?: string
+          start_time?: string
+          subject_id?: string | null
+          timetable_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_slots_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_timetable_id_fkey"
+            columns: ["timetable_id"]
+            isOneToOne: false
+            referencedRelation: "timetables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetables: {
+        Row: {
+          academic_year: string
+          course_id: string
+          created_at: string
+          generated_by: string | null
+          id: string
+          is_active: boolean
+          section: string | null
+          semester: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          course_id: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          is_active?: boolean
+          section?: string | null
+          semester: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          course_id?: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          is_active?: boolean
+          section?: string | null
+          semester?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetables_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetables_generated_by_fkey"
+            columns: ["generated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -10,16 +10,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FacultyAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     employeeId: "",
     password: "",
   });
+
+  // Redirect if already logged in as faculty
+  useEffect(() => {
+    if (!authLoading && user && profile?.user_type === "faculty") {
+      navigate("/faculty/select-role", { replace: true });
+    }
+  }, [user, profile, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +63,12 @@ const FacultyAuth = () => {
       if (data.user) {
         toast({
           title: "Welcome!",
-          description: "Login successful. Please select your role.",
+          description: "Login successful. Redirecting...",
         });
-        navigate("/faculty/select-role");
+        // Give AuthContext time to update, then navigate
+        setTimeout(() => {
+          navigate("/faculty/select-role", { replace: true });
+        }, 500);
       }
     } catch (error) {
       toast({

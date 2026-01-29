@@ -28,6 +28,12 @@ import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import FacultyAttendance from "./pages/faculty/FacultyAttendance";
 import FacultyAssignments from "./pages/faculty/FacultyAssignments";
 import FacultyEvaluations from "./pages/faculty/FacultyEvaluations";
+import FacultyMaterials from "./pages/faculty/FacultyMaterials";
+import FacultyStudents from "./pages/faculty/FacultyStudents";
+import FacultyAnalytics from "./pages/faculty/FacultyAnalytics";
+import FacultyTimetable from "./pages/faculty/FacultyTimetable";
+import FacultyNotifications from "./pages/faculty/FacultyNotifications";
+import FacultyAnnouncements from "./pages/faculty/FacultyAnnouncements";
 
 // Parent pages
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -110,6 +116,46 @@ const App = () => (
             <Route path="/faculty/evaluations" element={
               <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
                 <FacultyEvaluations />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/materials" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyMaterials />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/students" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyStudents />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/manage-students" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyStudents />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/manage-faculty" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyStudents />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/analytics" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyAnalytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/timetable" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyTimetable />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/notifications" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyNotifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/announcements" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyAnnouncements />
               </ProtectedRoute>
             } />
 
