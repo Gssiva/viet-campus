@@ -1,1 +1,7 @@
 project_id = "yahfwjcetsnbtjsaxlms"
+
+[functions.seed-demo-users]
+verify_jwt = false
+
+[functions.generate-timetable]
+verify_jwt = false
