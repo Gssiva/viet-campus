@@ -23,7 +23,7 @@ const FacultyAuth = () => {
     password: "",
   });
 
-  // Redirect if already logged in as faculty
+  // Redirect when logged in as faculty (handles both initial load and post-login)
   useEffect(() => {
     if (!authLoading && user && profile?.user_type === "faculty") {
       navigate("/faculty/select-role", { replace: true });
@@ -65,10 +65,7 @@ const FacultyAuth = () => {
           title: "Welcome!",
           description: "Login successful. Redirecting...",
         });
-        // Give AuthContext time to update, then navigate
-        setTimeout(() => {
-          navigate("/faculty/select-role", { replace: true });
-        }, 500);
+        // Navigation will happen automatically via AuthContext after profile loads
       }
     } catch (error) {
       toast({

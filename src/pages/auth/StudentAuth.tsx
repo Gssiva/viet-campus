@@ -23,7 +23,7 @@ const StudentAuth = () => {
     password: "",
   });
 
-  // Redirect if already logged in as student
+  // Redirect when logged in as student (handles both initial load and post-login)
   useEffect(() => {
     if (!authLoading && user && profile?.user_type === "student") {
       navigate("/student/dashboard", { replace: true });
@@ -65,9 +65,7 @@ const StudentAuth = () => {
           title: "Welcome!",
           description: "Login successful. Redirecting to dashboard...",
         });
-        setTimeout(() => {
-          navigate("/student/dashboard", { replace: true });
-        }, 500);
+        // Navigation will happen automatically via AuthContext after profile loads
       }
     } catch (error) {
       toast({

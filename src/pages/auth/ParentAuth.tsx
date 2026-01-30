@@ -23,7 +23,7 @@ const ParentAuth = () => {
     password: "",
   });
 
-  // Redirect if already logged in as parent
+  // Redirect when logged in as parent (handles both initial load and post-login)
   useEffect(() => {
     if (!authLoading && user && profile?.user_type === "parent") {
       navigate("/parent/dashboard", { replace: true });
@@ -65,9 +65,7 @@ const ParentAuth = () => {
           title: "Welcome!",
           description: "Login successful. Redirecting to dashboard...",
         });
-        setTimeout(() => {
-          navigate("/parent/dashboard", { replace: true });
-        }, 500);
+        // Navigation will happen automatically via AuthContext after profile loads
       }
     } catch (error) {
       toast({

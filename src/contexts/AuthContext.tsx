@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [activeRole, setActiveRole] = useState<FacultyRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Track if we're currently loading user data to prevent showing content before profile is ready
+  const isLoadingProfile = useRef(false);
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
@@ -95,17 +98,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const loadUserData = async (userId: string) => {
-    const profileData = await fetchProfile(userId);
-    setProfile(profileData);
+  const loadUserData = async (userId: string, keepLoading = false) => {
+    if (keepLoading) {
+      setIsLoading(true);
+    }
+    isLoadingProfile.current = true;
+    
+    try {
+      const profileData = await fetchProfile(userId);
+      setProfile(profileData);
 
-    if (profileData?.user_type === "faculty") {
-      const roles = await fetchFacultyRoles(userId);
-      setFacultyRoles(roles);
+      if (profileData?.user_type === "faculty") {
+        const roles = await fetchFacultyRoles(userId);
+        setFacultyRoles(roles);
 
-      // Set default active role if only one role
-      if (roles.length === 1) {
-        setActiveRole(roles[0].role);
+        // Set default active role if only one role
+        if (roles.length === 1) {
+          setActiveRole(roles[0].role);
+        }
+      }
+    } finally {
+      isLoadingProfile.current = false;
+      if (keepLoading) {
+        setIsLoading(false);
       }
     }
   };
@@ -118,6 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
@@ -135,37 +151,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to sign out. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     let isMounted = true;
 
-    // CRITICAL: Set up auth state listener FIRST (synchronous only!)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
-
-        // Only synchronous state updates here
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Defer Supabase calls with setTimeout to prevent deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            if (isMounted) {
-              loadUserData(session.user.id);
-            }
-          }, 0);
-        } else {
-          setProfile(null);
-          setFacultyRoles([]);
-          setActiveRole(null);
-        }
-      }
-    );
-
-    // THEN check for existing session (INITIAL load)
+    // INITIAL load - check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -189,6 +183,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initializeAuth();
+
+    // Set up auth state listener for ONGOING changes (login/logout events)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+
+        console.log("Auth state changed:", event);
+
+        // Update session and user synchronously
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (event === "SIGNED_IN" && session?.user) {
+          // User just signed in - load their data
+          // This is critical: we MUST await the profile load before allowing navigation
+          await loadUserData(session.user.id, true);
+        } else if (event === "SIGNED_OUT") {
+          setProfile(null);
+          setFacultyRoles([]);
+          setActiveRole(null);
+        } else if (event === "TOKEN_REFRESHED" && session?.user) {
+          // Just refresh profile data in background
+          loadUserData(session.user.id);
+        }
+      }
+    );
 
     return () => {
       isMounted = false;
