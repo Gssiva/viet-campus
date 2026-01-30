@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 type UserType = "student" | "faculty" | "parent";
@@ -57,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -77,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchFacultyRoles = async (userId: string) => {
+  const fetchFacultyRoles = async (userId: string): Promise<FacultyRoleData[]> => {
     try {
       const { data, error } = await supabase
         .from("faculty_roles")
@@ -96,15 +95,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const loadUserData = async (userId: string) => {
+    const profileData = await fetchProfile(userId);
+    setProfile(profileData);
+
+    if (profileData?.user_type === "faculty") {
+      const roles = await fetchFacultyRoles(userId);
+      setFacultyRoles(roles);
+
+      // Set default active role if only one role
+      if (roles.length === 1) {
+        setActiveRole(roles[0].role);
+      }
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) {
-      const profileData = await fetchProfile(user.id);
-      setProfile(profileData);
-      
-      if (profileData?.user_type === "faculty") {
-        const roles = await fetchFacultyRoles(user.id);
-        setFacultyRoles(roles);
-      }
+      await loadUserData(user.id);
     }
   };
 
@@ -131,58 +139,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        setProfile(profileData);
-        
-        if (profileData?.user_type === "faculty") {
-          const roles = await fetchFacultyRoles(session.user.id);
-          setFacultyRoles(roles);
-          
-          // Set default active role if only one role
-          if (roles.length === 1) {
-            setActiveRole(roles[0].role);
-          }
-        }
-      }
-      
-      setIsLoading(false);
-    });
+    let isMounted = true;
 
-    // Listen for auth changes
+    // CRITICAL: Set up auth state listener FIRST (synchronous only!)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!isMounted) return;
+
+        // Only synchronous state updates here
         setSession(session);
         setUser(session?.user ?? null);
-        
+
+        // Defer Supabase calls with setTimeout to prevent deadlock
         if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-          
-          if (profileData?.user_type === "faculty") {
-            const roles = await fetchFacultyRoles(session.user.id);
-            setFacultyRoles(roles);
-            
-            if (roles.length === 1) {
-              setActiveRole(roles[0].role);
+          setTimeout(() => {
+            if (isMounted) {
+              loadUserData(session.user.id);
             }
-          }
+          }, 0);
         } else {
           setProfile(null);
           setFacultyRoles([]);
           setActiveRole(null);
         }
-        
-        setIsLoading(false);
       }
     );
 
+    // THEN check for existing session (INITIAL load)
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Fetch profile BEFORE setting loading false
+        if (session?.user) {
+          await loadUserData(session.user.id);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
