@@ -185,8 +185,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth();
 
     // Set up auth state listener for ONGOING changes (login/logout events)
+    // CRITICAL: Do NOT use async in onAuthStateChange - it causes deadlocks
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!isMounted) return;
 
         console.log("Auth state changed:", event);
@@ -197,15 +198,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (event === "SIGNED_IN" && session?.user) {
           // User just signed in - load their data
-          // This is critical: we MUST await the profile load before allowing navigation
-          await loadUserData(session.user.id, true);
+          // Use setTimeout(0) to avoid Supabase deadlock
+          setIsLoading(true);
+          isLoadingProfile.current = true;
+          
+          setTimeout(async () => {
+            if (!isMounted) return;
+            try {
+              await loadUserData(session.user.id);
+            } finally {
+              if (isMounted) {
+                setIsLoading(false);
+              }
+            }
+          }, 0);
         } else if (event === "SIGNED_OUT") {
           setProfile(null);
           setFacultyRoles([]);
           setActiveRole(null);
         } else if (event === "TOKEN_REFRESHED" && session?.user) {
           // Just refresh profile data in background
-          loadUserData(session.user.id);
+          setTimeout(() => {
+            loadUserData(session.user.id);
+          }, 0);
         }
       }
     );
