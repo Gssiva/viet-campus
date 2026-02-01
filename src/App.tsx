@@ -34,9 +34,20 @@ import FacultyAnalytics from "./pages/faculty/FacultyAnalytics";
 import FacultyTimetable from "./pages/faculty/FacultyTimetable";
 import FacultyNotifications from "./pages/faculty/FacultyNotifications";
 import FacultyAnnouncements from "./pages/faculty/FacultyAnnouncements";
+import FacultyDepartments from "./pages/faculty/FacultyDepartments";
+import FacultyCourses from "./pages/faculty/FacultyCourses";
+import FacultyFeeStructure from "./pages/faculty/FacultyFeeStructure";
+import FacultyPayments from "./pages/faculty/FacultyPayments";
+import FacultyFeeReports from "./pages/faculty/FacultyFeeReports";
+import FacultyTransport from "./pages/faculty/FacultyTransport";
+import FacultyDepartmentView from "./pages/faculty/FacultyDepartmentView";
 
 // Parent pages
 import ParentDashboard from "./pages/parent/ParentDashboard";
+import ParentAttendance from "./pages/parent/ParentAttendance";
+import ParentResults from "./pages/parent/ParentResults";
+import ParentFees from "./pages/parent/ParentFees";
+import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
 
 const queryClient = new QueryClient();
 
@@ -158,11 +169,68 @@ const App = () => (
                 <FacultyAnnouncements />
               </ProtectedRoute>
             } />
+            {/* Admin/HOD specific routes */}
+            <Route path="/faculty/departments" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyDepartments />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/department" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyDepartmentView />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/courses" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyCourses />
+              </ProtectedRoute>
+            } />
+            {/* Accounts specific routes */}
+            <Route path="/faculty/fee-structure" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyFeeStructure />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/payments" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyPayments />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/fee-reports" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyFeeReports />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/transport" element={
+              <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
+                <FacultyTransport />
+              </ProtectedRoute>
+            } />
 
             {/* Parent routes */}
             <Route path="/parent/dashboard" element={
               <ProtectedRoute allowedUserTypes={["parent"]}>
                 <ParentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/parent/attendance" element={
+              <ProtectedRoute allowedUserTypes={["parent"]}>
+                <ParentAttendance />
+              </ProtectedRoute>
+            } />
+            <Route path="/parent/results" element={
+              <ProtectedRoute allowedUserTypes={["parent"]}>
+                <ParentResults />
+              </ProtectedRoute>
+            } />
+            <Route path="/parent/fees" element={
+              <ProtectedRoute allowedUserTypes={["parent"]}>
+                <ParentFees />
+              </ProtectedRoute>
+            } />
+            <Route path="/parent/announcements" element={
+              <ProtectedRoute allowedUserTypes={["parent"]}>
+                <ParentAnnouncements />
               </ProtectedRoute>
             } />
             
