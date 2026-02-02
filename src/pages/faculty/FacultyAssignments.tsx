@@ -9,6 +9,10 @@ import {
   Clock,
   Users,
   CheckCircle,
+  Sparkles,
+  Upload,
+  Bot,
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout, teachingNavItems } from "@/components/layout/DashboardLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -21,6 +25,7 @@ import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -47,6 +53,8 @@ interface Assignment {
   subject_code: string;
   submissions_count: number;
   evaluated_count: number;
+  is_ai_evaluation_enabled: boolean;
+  model_answer_url: string | null;
 }
 
 interface Subject {
@@ -63,6 +71,10 @@ const FacultyAssignments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState<string | null>(null);
+  const [modelAnswerDialogOpen, setModelAnswerDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [modelAnswer, setModelAnswer] = useState("");
 
   const [newAssignment, setNewAssignment] = useState({
     title: "",
@@ -71,6 +83,8 @@ const FacultyAssignments = () => {
     assignment_type: "assignment",
     max_marks: 100,
     due_date: "",
+    is_ai_evaluation_enabled: true,
+    model_answer: "",
   });
 
   useEffect(() => {
@@ -108,6 +122,8 @@ const FacultyAssignments = () => {
           due_date,
           max_marks,
           assignment_type,
+          is_ai_evaluation_enabled,
+          model_answer_url,
           subjects (name, code)
         `)
         .eq("faculty_id", profile!.id)
@@ -145,6 +161,8 @@ const FacultyAssignments = () => {
         subject_code: a.subjects?.code || "",
         submissions_count: submissionCounts.get(a.id)?.total || 0,
         evaluated_count: submissionCounts.get(a.id)?.evaluated || 0,
+        is_ai_evaluation_enabled: a.is_ai_evaluation_enabled,
+        model_answer_url: a.model_answer_url,
       }));
 
       setAssignments(formattedAssignments);
@@ -165,6 +183,15 @@ const FacultyAssignments = () => {
       return;
     }
 
+    if (newAssignment.is_ai_evaluation_enabled && !newAssignment.model_answer) {
+      toast({
+        title: "Error",
+        description: "Please provide a model answer for AI evaluation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -176,6 +203,8 @@ const FacultyAssignments = () => {
         assignment_type: newAssignment.assignment_type,
         max_marks: newAssignment.max_marks,
         due_date: newAssignment.due_date || null,
+        is_ai_evaluation_enabled: newAssignment.is_ai_evaluation_enabled,
+        model_answer_url: newAssignment.model_answer || null,
       });
 
       if (error) throw error;
@@ -193,6 +222,8 @@ const FacultyAssignments = () => {
         assignment_type: "assignment",
         max_marks: 100,
         due_date: "",
+        is_ai_evaluation_enabled: true,
+        model_answer: "",
       });
       fetchData();
     } catch (error: any) {
@@ -231,11 +262,81 @@ const FacultyAssignments = () => {
     }
   };
 
+  const openModelAnswerDialog = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setModelAnswer(assignment.model_answer_url || "");
+    setModelAnswerDialogOpen(true);
+  };
+
+  const saveModelAnswer = async () => {
+    if (!selectedAssignment) return;
+
+    try {
+      const { error } = await supabase
+        .from("assignments")
+        .update({ 
+          model_answer_url: modelAnswer,
+          is_ai_evaluation_enabled: !!modelAnswer
+        })
+        .eq("id", selectedAssignment.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Model answer saved successfully!",
+      });
+      setModelAnswerDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save model answer.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const runAIEvaluation = async (assignmentId: string) => {
+    setIsEvaluating(assignmentId);
+    
+    try {
+      const response = await supabase.functions.invoke("batch-evaluate", {
+        body: { assignment_id: assignmentId },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const data = response.data;
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast({
+        title: "AI Evaluation Complete",
+        description: `Evaluated ${data.evaluated_count} submissions. ${data.failed_count > 0 ? `${data.failed_count} failed.` : ""}`,
+      });
+      
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Evaluation Error",
+        description: error.message || "Failed to run AI evaluation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEvaluating(null);
+    }
+  };
+
   return (
     <DashboardLayout
       navItems={teachingNavItems}
       title="Assignments"
-      subtitle="Create and manage assignments"
+      subtitle="Create and manage assignments with AI evaluation"
     >
       {/* Header Actions */}
       <motion.div
@@ -252,10 +353,16 @@ const FacultyAssignments = () => {
               <p className="text-xs text-muted-foreground">Total</p>
             </GlassCard>
             <GlassCard className="p-4 text-center">
-              <p className="text-2xl font-bold text-amber-500">
+              <p className="text-2xl font-bold text-warning">
                 {assignments.reduce((sum, a) => sum + a.submissions_count, 0)}
               </p>
               <p className="text-xs text-muted-foreground">Submissions</p>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <p className="text-2xl font-bold text-primary">
+                {assignments.filter(a => a.is_ai_evaluation_enabled).length}
+              </p>
+              <p className="text-xs text-muted-foreground">AI Enabled</p>
             </GlassCard>
           </div>
 
@@ -266,9 +373,12 @@ const FacultyAssignments = () => {
                 Create Assignment
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Assignment</DialogTitle>
+                <DialogDescription>
+                  Create an assignment with AI-powered automatic evaluation
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -299,12 +409,12 @@ const FacultyAssignments = () => {
                     onChange={(e) =>
                       setNewAssignment({ ...newAssignment, title: e.target.value })
                     }
-                    placeholder="Assignment title"
+                    placeholder="Assignment title / Question"
                   />
                 </div>
 
                 <div>
-                  <Label>Description</Label>
+                  <Label>Instructions / Question Details</Label>
                   <Textarea
                     value={newAssignment.description}
                     onChange={(e) =>
@@ -313,7 +423,7 @@ const FacultyAssignments = () => {
                         description: e.target.value,
                       })
                     }
-                    placeholder="Assignment instructions..."
+                    placeholder="Detailed question or assignment instructions..."
                     rows={3}
                   />
                 </div>
@@ -364,6 +474,43 @@ const FacultyAssignments = () => {
                   />
                 </div>
 
+                {/* AI Evaluation Section */}
+                <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <Label className="font-medium">AI-Powered Evaluation</Label>
+                    </div>
+                    <Switch
+                      checked={newAssignment.is_ai_evaluation_enabled}
+                      onCheckedChange={(checked) =>
+                        setNewAssignment({ ...newAssignment, is_ai_evaluation_enabled: checked })
+                      }
+                    />
+                  </div>
+                  
+                  {newAssignment.is_ai_evaluation_enabled && (
+                    <div>
+                      <Label>Model Answer *</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Provide the ideal answer. AI will compare student submissions against this.
+                      </p>
+                      <Textarea
+                        value={newAssignment.model_answer}
+                        onChange={(e) =>
+                          setNewAssignment({
+                            ...newAssignment,
+                            model_answer: e.target.value,
+                          })
+                        }
+                        placeholder="Enter the complete model answer here. The more detailed, the better the AI evaluation accuracy..."
+                        rows={6}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   className="w-full"
                   onClick={handleCreateAssignment}
@@ -403,11 +550,22 @@ const FacultyAssignments = () => {
                 <GlassCard className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge variant="outline">{assignment.subject_code}</Badge>
                         <Badge variant="secondary" className="capitalize">
                           {assignment.assignment_type}
                         </Badge>
+                        {assignment.is_ai_evaluation_enabled && (
+                          <Badge className="gap-1 bg-primary/20 text-primary border-primary/30">
+                            <Sparkles className="w-3 h-3" />
+                            AI Evaluation
+                          </Badge>
+                        )}
+                        {!assignment.model_answer_url && assignment.is_ai_evaluation_enabled && (
+                          <Badge variant="destructive" className="gap-1">
+                            No Model Answer
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="font-semibold">{assignment.title}</h3>
                       {assignment.description && (
@@ -434,7 +592,36 @@ const FacultyAssignments = () => {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      {assignment.is_ai_evaluation_enabled && assignment.model_answer_url && 
+                       assignment.submissions_count > assignment.evaluated_count && (
+                        <Button 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={() => runAIEvaluation(assignment.id)}
+                          disabled={isEvaluating === assignment.id}
+                        >
+                          {isEvaluating === assignment.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Evaluating...
+                            </>
+                          ) : (
+                            <>
+                              <Bot className="w-4 h-4" />
+                              Run AI Eval
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => openModelAnswerDialog(assignment)}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        Model Answer
+                      </Button>
                       <Button size="sm" variant="outline">
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -456,6 +643,57 @@ const FacultyAssignments = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Model Answer Dialog */}
+      <Dialog open={modelAnswerDialogOpen} onOpenChange={setModelAnswerDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Configure Model Answer
+            </DialogTitle>
+            <DialogDescription>
+              {selectedAssignment?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-muted/50">
+              <h4 className="text-sm font-medium mb-2">How AI Evaluation Works:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• AI compares student answers against your model answer</li>
+                <li>• Evaluates semantic similarity, factual accuracy, completeness</li>
+                <li>• Generates suggested marks and detailed feedback</li>
+                <li>• You can review and approve/modify AI suggestions</li>
+              </ul>
+            </div>
+
+            <div>
+              <Label>Model Answer / Expected Response</Label>
+              <Textarea
+                value={modelAnswer}
+                onChange={(e) => setModelAnswer(e.target.value)}
+                placeholder="Enter the complete model answer here. Include all key concepts, important points, and expected content. The more comprehensive, the better the AI can evaluate..."
+                rows={10}
+                className="font-mono text-sm mt-2"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: Include key concepts, formulas, examples, and all expected points for accurate evaluation.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setModelAnswerDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveModelAnswer}>
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Save Model Answer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
