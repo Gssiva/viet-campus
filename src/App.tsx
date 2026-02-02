@@ -30,6 +30,7 @@ import FacultyAssignments from "./pages/faculty/FacultyAssignments";
 import FacultyEvaluations from "./pages/faculty/FacultyEvaluations";
 import FacultyMaterials from "./pages/faculty/FacultyMaterials";
 import FacultyStudents from "./pages/faculty/FacultyStudents";
+import FacultyManageFaculty from "./pages/faculty/FacultyManageFaculty";
 import FacultyAnalytics from "./pages/faculty/FacultyAnalytics";
 import FacultyTimetable from "./pages/faculty/FacultyTimetable";
 import FacultyNotifications from "./pages/faculty/FacultyNotifications";
@@ -146,7 +147,7 @@ const App = () => (
             } />
             <Route path="/faculty/manage-faculty" element={
               <ProtectedRoute allowedUserTypes={["faculty"]} requireRole>
-                <FacultyStudents />
+                <FacultyManageFaculty />
               </ProtectedRoute>
             } />
             <Route path="/faculty/analytics" element={
