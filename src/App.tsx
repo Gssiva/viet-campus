@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 // Public pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 import StudentAuth from "./pages/auth/StudentAuth";
 import FacultyAuth from "./pages/auth/FacultyAuth";
 import ParentAuth from "./pages/auth/ParentAuth";
@@ -66,6 +67,13 @@ const App = () => (
             <Route path="/auth/student" element={<StudentAuth />} />
             <Route path="/auth/faculty" element={<FacultyAuth />} />
             <Route path="/auth/parent" element={<ParentAuth />} />
+            
+            {/* Settings route - accessible to all authenticated users */}
+            <Route path="/settings" element={
+              <ProtectedRoute allowedUserTypes={["student", "faculty", "parent"]}>
+                <Settings />
+              </ProtectedRoute>
+            } />
             
             {/* Student routes */}
             <Route path="/student/dashboard" element={
