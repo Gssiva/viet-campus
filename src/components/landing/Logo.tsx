@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { GraduationCap } from "lucide-react";
+import vietLogo from "@/assets/viet-logo.jfif";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg";
@@ -8,9 +8,9 @@ interface LogoProps {
 
 export const Logo = ({ size = "md", showText = true }: LogoProps) => {
   const sizeClasses = {
-    sm: "w-8 h-8",
-    md: "w-12 h-12",
-    lg: "w-16 h-16",
+    sm: "w-10 h-10",
+    md: "w-14 h-14",
+    lg: "w-20 h-20",
   };
 
   const textSizeClasses = {
@@ -27,31 +27,15 @@ export const Logo = ({ size = "md", showText = true }: LogoProps) => {
       transition={{ duration: 0.5 }}
     >
       <motion.div
-        className={`${sizeClasses[size]} rounded-xl flex items-center justify-center relative`}
-        style={{
-          background: "var(--gradient-primary)",
-          boxShadow: "0 4px 20px hsl(217, 91%, 60%, 0.3)",
-        }}
-        whileHover={{ scale: 1.05, rotate: 5 }}
+        className={`${sizeClasses[size]} rounded-full overflow-hidden flex items-center justify-center relative bg-white shadow-lg`}
+        whileHover={{ scale: 1.05 }}
         transition={{ type: "spring", stiffness: 300 }}
       >
-        <GraduationCap className="w-1/2 h-1/2 text-primary-foreground" />
-        
-        {/* Shine effect */}
-        <motion.div
-          className="absolute inset-0 rounded-xl overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)",
-            }}
-            animate={{ x: ["-100%", "200%"] }}
-            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-          />
-        </motion.div>
+        <img 
+          src={vietLogo} 
+          alt="VIET Logo" 
+          className="w-full h-full object-contain p-1"
+        />
       </motion.div>
 
       {showText && (
