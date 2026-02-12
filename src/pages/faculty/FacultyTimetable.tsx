@@ -146,7 +146,7 @@ const FacultyTimetable = () => {
     enabled: !!selectedCourse,
   });
 
-  // Generate AI timetable
+  // Generate AI timetable via edge function
   const generateTimetable = async () => {
     if (!selectedCourse || !profile?.id) {
       toast({ title: "Error", description: "Please select a course first", variant: "destructive" });
@@ -155,6 +155,42 @@ const FacultyTimetable = () => {
 
     setIsGenerating(true);
     try {
+      // Deactivate any existing timetable for this course/semester/section
+      await supabase
+        .from("timetables")
+        .update({ is_active: false })
+        .eq("course_id", selectedCourse)
+        .eq("semester", parseInt(selectedSemester))
+        .eq("section", selectedSection)
+        .eq("is_active", true);
+
+      // Call the edge function
+      const { data: aiResult, error: fnError } = await supabase.functions.invoke("generate-timetable", {
+        body: {
+          courseId: selectedCourse,
+          semester: parseInt(selectedSemester),
+          section: selectedSection,
+          academicYear: "2025-26",
+          subjects: subjects.map((s: any) => ({
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            credits: 3,
+            isLab: s.is_lab,
+          })),
+          faculty: faculty.map((f: any) => ({
+            id: f.id,
+            name: `${f.first_name} ${f.last_name}`,
+            employeeId: f.employee_id || "",
+          })),
+        },
+      });
+
+      if (fnError) throw fnError;
+      if (!aiResult?.success) throw new Error(aiResult?.error || "AI generation failed");
+
+      console.log("AI timetable generated via:", aiResult.method);
+
       // Create timetable record
       const { data: newTimetable, error: timetableError } = await supabase
         .from("timetables")
@@ -170,51 +206,28 @@ const FacultyTimetable = () => {
 
       if (timetableError) throw timetableError;
 
-      // Generate slots for each day
-      const slots: any[] = [];
-      const subjectList = [...subjects];
-      
-      DAYS.forEach((day, dayIndex) => {
-        TIME_SLOTS.forEach((timeSlot, slotIndex) => {
-          if (timeSlot.isBreak) {
-            slots.push({
-              timetable_id: newTimetable.id,
-              day_of_week: dayIndex,
-              start_time: timeSlot.start,
-              end_time: timeSlot.end,
-              slot_type: "lunch",
-              room_number: null,
-              subject_id: null,
-              faculty_id: null,
-            });
-          } else if (subjectList.length > 0) {
-            // Simple round-robin assignment
-            const subjectIndex = (dayIndex * TIME_SLOTS.filter(t => !t.isBreak).length + slotIndex) % subjectList.length;
-            const subject = subjectList[subjectIndex];
-            
-            slots.push({
-              timetable_id: newTimetable.id,
-              day_of_week: dayIndex,
-              start_time: timeSlot.start,
-              end_time: timeSlot.end,
-              slot_type: subject.is_lab ? "lab" : "lecture",
-              room_number: subject.is_lab ? `Lab ${Math.floor(Math.random() * 5) + 1}` : `Room ${100 + Math.floor(Math.random() * 50)}`,
-              subject_id: subject.id,
-              faculty_id: faculty.length > 0 ? faculty[Math.floor(Math.random() * faculty.length)].id : null,
-            });
-          }
-        });
-      });
+      // Map AI slots to DB format
+      const generatedSlots = aiResult.timetable?.slots || [];
+      const dbSlots = generatedSlots.map((slot: any) => ({
+        timetable_id: newTimetable.id,
+        day_of_week: slot.day,
+        start_time: slot.startTime,
+        end_time: slot.endTime,
+        slot_type: slot.type || "lecture",
+        room_number: slot.room || null,
+        subject_id: slot.subjectId || null,
+        faculty_id: slot.facultyId || null,
+      }));
 
-      // Insert all slots
-      const { error: slotsError } = await supabase
-        .from("timetable_slots")
-        .insert(slots);
-
-      if (slotsError) throw slotsError;
+      if (dbSlots.length > 0) {
+        const { error: slotsError } = await supabase
+          .from("timetable_slots")
+          .insert(dbSlots);
+        if (slotsError) throw slotsError;
+      }
 
       queryClient.invalidateQueries({ queryKey: ["timetable"] });
-      toast({ title: "Success", description: "Timetable generated successfully!" });
+      toast({ title: "Success", description: `Timetable generated via ${aiResult.method} method!` });
     } catch (error: any) {
       console.error("Error generating timetable:", error);
       toast({ title: "Error", description: error.message || "Failed to generate timetable", variant: "destructive" });
