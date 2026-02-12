@@ -245,7 +245,7 @@ const FacultyTimetable = () => {
   const getSlotData = (dayIndex: number, timeSlot: typeof TIME_SLOTS[0]) => {
     if (!timetable?.timetable_slots) return null;
     return timetable.timetable_slots.find(
-      (s: any) => s.day_of_week === dayIndex && s.start_time === timeSlot.start
+      (s: any) => s.day_of_week === dayIndex && s.start_time?.substring(0, 5) === timeSlot.start
     );
   };
 
