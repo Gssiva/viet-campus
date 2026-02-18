@@ -6,10 +6,10 @@ export const BackgroundEffects = () => {
       {/* Main gradient background */}
       <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
 
-      {/* Grid pattern */}
-      <div className="absolute inset-0 bg-grid opacity-30" />
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 bg-grid opacity-20" />
 
-      {/* Animated orbs */}
+      {/* Animated orbs - softer for light theme */}
       <motion.div
         className="orb w-[600px] h-[600px] -top-48 -right-48"
         animate={{
@@ -23,7 +23,7 @@ export const BackgroundEffects = () => {
           ease: "easeInOut",
         }}
         style={{
-          background: "radial-gradient(circle, hsl(217, 91%, 60%, 0.3) 0%, transparent 70%)",
+          background: "radial-gradient(circle, hsl(217, 91%, 60%, 0.12) 0%, transparent 70%)",
         }}
       />
 
@@ -40,7 +40,7 @@ export const BackgroundEffects = () => {
           ease: "easeInOut",
         }}
         style={{
-          background: "radial-gradient(circle, hsl(188, 92%, 60%, 0.25) 0%, transparent 70%)",
+          background: "radial-gradient(circle, hsl(188, 92%, 55%, 0.1) 0%, transparent 70%)",
         }}
       />
 
@@ -48,7 +48,7 @@ export const BackgroundEffects = () => {
         className="orb w-[400px] h-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.2, 0.3, 0.2],
+          opacity: [0.15, 0.25, 0.15],
         }}
         transition={{
           duration: 15,
@@ -56,22 +56,22 @@ export const BackgroundEffects = () => {
           ease: "easeInOut",
         }}
         style={{
-          background: "radial-gradient(circle, hsl(217, 91%, 60%, 0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, hsl(217, 91%, 60%, 0.08) 0%, transparent 70%)",
         }}
       />
 
       {/* Floating particles */}
-      {[...Array(20)].map((_, i) => (
+      {[...Array(15)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/30"
+          className="absolute w-1 h-1 rounded-full bg-primary/20"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
           }}
           animate={{
             y: [0, -30, 0],
-            opacity: [0.3, 0.8, 0.3],
+            opacity: [0.2, 0.5, 0.2],
           }}
           transition={{
             duration: 3 + Math.random() * 4,
