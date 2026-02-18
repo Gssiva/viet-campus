@@ -88,7 +88,8 @@ export const DashboardLayout = ({
       {/* Sidebar */}
       <motion.aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen w-64 bg-card border-r border-border flex flex-col",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-64 flex flex-col",
+          "border-r border-border/40 backdrop-blur-glass bg-card/80",
           "transform lg:transform-none transition-transform duration-300",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -169,7 +170,7 @@ export const DashboardLayout = ({
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border">
+        <header className="sticky top-0 z-30 bg-card/70 backdrop-blur-glass border-b border-border/40 shadow-sm">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center gap-4">
               <button
