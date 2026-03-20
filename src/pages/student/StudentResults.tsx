@@ -267,6 +267,7 @@ const StudentResults = () => {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
 
           {filteredResults.length === 0 ? (
