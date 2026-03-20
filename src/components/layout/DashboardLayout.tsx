@@ -1,6 +1,8 @@
 import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Home,
   BookOpen,
@@ -189,6 +191,8 @@ export const DashboardLayout = ({
             </div>
 
             <div className="flex items-center gap-2">
+              <ThemeToggle />
+
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
@@ -225,13 +229,11 @@ export const DashboardLayout = ({
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {children}
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <PageTransition key={location.pathname}>
+              {children}
+            </PageTransition>
+          </AnimatePresence>
         </main>
       </div>
     </div>
