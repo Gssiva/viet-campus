@@ -355,6 +355,7 @@ const StudentAttendance = () => {
                   ))}
                 </SelectContent>
               </Select>
+              </div>
             </div>
 
             {filteredRecords.length === 0 ? (
