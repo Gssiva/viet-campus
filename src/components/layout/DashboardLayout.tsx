@@ -1,6 +1,8 @@
 import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Home,
   BookOpen,
