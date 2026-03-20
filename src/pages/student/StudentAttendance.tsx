@@ -323,6 +323,24 @@ const StudentAttendance = () => {
           <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Attendance Records</h2>
+              <div className="flex items-center gap-2">
+                <ExportCSVButton
+                  data={filteredRecords.map((r) => ({
+                    Date: r.date,
+                    Subject: r.subject_name,
+                    Code: r.subject_code,
+                    Status: r.status,
+                    Remarks: r.remarks || "",
+                  }))}
+                  filename="attendance-records"
+                  columns={[
+                    { key: "Date", label: "Date" },
+                    { key: "Subject", label: "Subject" },
+                    { key: "Code", label: "Code" },
+                    { key: "Status", label: "Status" },
+                    { key: "Remarks", label: "Remarks" },
+                  ]}
+                />
 
               <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger className="w-40">
