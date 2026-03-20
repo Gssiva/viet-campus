@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Award, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { ExportCSVButton } from "@/components/ExportCSVButton";
 import { DashboardLayout, studentNavItems } from "@/components/layout/DashboardLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
