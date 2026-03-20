@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import {
   Home,
   BookOpen,
