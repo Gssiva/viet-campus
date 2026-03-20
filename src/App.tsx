@@ -24,6 +24,7 @@ const StudentResults = lazy(() => import("./pages/student/StudentResults"));
 const StudentFees = lazy(() => import("./pages/student/StudentFees"));
 const StudentMaterials = lazy(() => import("./pages/student/StudentMaterials"));
 const StudentTransport = lazy(() => import("./pages/student/StudentTransport"));
+const StudentCalendar = lazy(() => import("./pages/student/StudentCalendar"));
 
 // Faculty pages
 const FacultySelectRole = lazy(() => import("./pages/faculty/FacultySelectRole"));
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/student/fees" element={<ProtectedRoute allowedUserTypes={["student"]}><StudentFees /></ProtectedRoute>} />
               <Route path="/student/materials" element={<ProtectedRoute allowedUserTypes={["student"]}><StudentMaterials /></ProtectedRoute>} />
               <Route path="/student/transport" element={<ProtectedRoute allowedUserTypes={["student"]}><StudentTransport /></ProtectedRoute>} />
+              <Route path="/student/calendar" element={<ProtectedRoute allowedUserTypes={["student"]}><StudentCalendar /></ProtectedRoute>} />
 
               {/* Faculty routes */}
               <Route path="/faculty/select-role" element={<ProtectedRoute allowedUserTypes={["faculty"]}><FacultySelectRole /></ProtectedRoute>} />

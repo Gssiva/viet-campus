@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Award, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { ExportCSVButton } from "@/components/ExportCSVButton";
 import { DashboardLayout, studentNavItems } from "@/components/layout/DashboardLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -228,6 +229,30 @@ const StudentResults = () => {
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">Results</h2>
+            <div className="flex items-center gap-2">
+              <ExportCSVButton
+                data={filteredResults.map((r) => ({
+                  Subject: r.subject_name,
+                  Code: r.subject_code,
+                  ExamType: r.exam_type,
+                  Semester: r.semester,
+                  Marks: r.marks_obtained ?? "",
+                  MaxMarks: r.max_marks,
+                  Grade: r.grade || "",
+                  Year: r.academic_year,
+                }))}
+                filename="exam-results"
+                columns={[
+                  { key: "Subject", label: "Subject" },
+                  { key: "Code", label: "Code" },
+                  { key: "ExamType", label: "Exam Type" },
+                  { key: "Semester", label: "Semester" },
+                  { key: "Marks", label: "Marks" },
+                  { key: "MaxMarks", label: "Max Marks" },
+                  { key: "Grade", label: "Grade" },
+                  { key: "Year", label: "Academic Year" },
+                ]}
+              />
 
             <Select value={selectedSemester} onValueChange={setSelectedSemester}>
               <SelectTrigger className="w-40">
@@ -242,6 +267,7 @@ const StudentResults = () => {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
 
           {filteredResults.length === 0 ? (

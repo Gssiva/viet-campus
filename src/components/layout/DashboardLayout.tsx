@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import {
   Home,
   BookOpen,
@@ -61,6 +62,7 @@ export const DashboardLayout = ({
   const location = useLocation();
   const { profile, signOut, activeRole } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const unreadCount = useUnreadNotifications();
 
   const handleSignOut = async () => {
     await signOut();
@@ -193,11 +195,20 @@ export const DashboardLayout = ({
             <div className="flex items-center gap-2">
               <ThemeToggle />
 
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" onClick={() => {
+                const notifPath = profile?.user_type === "student" ? "/student/dashboard" : profile?.user_type === "parent" ? "/parent/dashboard" : "/faculty/notifications";
+                navigate(notifPath);
+              }}>
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center px-1"
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </motion.span>
+                )}
               </Button>
 
               <DropdownMenu>
@@ -247,6 +258,7 @@ export const studentNavItems: NavItem[] = [
   { label: "Assignments", icon: FileText, path: "/student/assignments" },
   { label: "Results", icon: Award, path: "/student/results" },
   { label: "Study Materials", icon: BookOpen, path: "/student/materials" },
+  { label: "Calendar", icon: Calendar, path: "/student/calendar" },
   { label: "Fees", icon: CreditCard, path: "/student/fees" },
   { label: "Transport", icon: Bus, path: "/student/transport" },
 ];
