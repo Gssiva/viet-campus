@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { ExportCSVButton } from "@/components/ExportCSVButton";
 import { DashboardLayout, studentNavItems } from "@/components/layout/DashboardLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useAuth } from "@/contexts/AuthContext";
