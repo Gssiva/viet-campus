@@ -258,6 +258,7 @@ export const studentNavItems: NavItem[] = [
   { label: "Assignments", icon: FileText, path: "/student/assignments" },
   { label: "Results", icon: Award, path: "/student/results" },
   { label: "Study Materials", icon: BookOpen, path: "/student/materials" },
+  { label: "Calendar", icon: CalendarIcon, path: "/student/calendar" },
   { label: "Fees", icon: CreditCard, path: "/student/fees" },
   { label: "Transport", icon: Bus, path: "/student/transport" },
 ];
