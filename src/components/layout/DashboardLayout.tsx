@@ -62,6 +62,7 @@ export const DashboardLayout = ({
   const location = useLocation();
   const { profile, signOut, activeRole } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const unreadCount = useUnreadNotifications();
 
   const handleSignOut = async () => {
     await signOut();
