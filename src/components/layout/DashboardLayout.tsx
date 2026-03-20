@@ -195,11 +195,20 @@ export const DashboardLayout = ({
             <div className="flex items-center gap-2">
               <ThemeToggle />
 
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" onClick={() => {
+                const notifPath = profile?.user_type === "student" ? "/student/dashboard" : profile?.user_type === "parent" ? "/parent/dashboard" : "/faculty/notifications";
+                navigate(notifPath);
+              }}>
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center px-1"
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </motion.span>
+                )}
               </Button>
 
               <DropdownMenu>
